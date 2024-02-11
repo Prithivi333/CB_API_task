@@ -10,8 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
 
 @RestController
 public class ProductController {
@@ -25,25 +23,25 @@ public class ProductController {
     private static final Logger logger = LoggerFactory.getLogger(ProductController.class);
 
     @GetMapping("getProduct/{id}")
-    public ResponseEntity<Product> getProduct(@PathVariable("id") Long id){
+    public ResponseEntity<Object> getProduct(@PathVariable("id") Long id){
         try{
             Product foundProduct=pService.getProduct(id);
-                if(foundProduct!=null){
-                    return new ResponseEntity<>(foundProduct,HttpStatus.OK);
-                }
-                else {
-                    logger.error("Unable to find requested product😓");
-                }
-            return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
+            if(foundProduct==null){
+                return new ResponseEntity<>(new Error("Product not found"),HttpStatus.NOT_FOUND);
+            }
+            else {
+                logger.error("Unable to find requested product😓");
+            }
+            return new ResponseEntity<>(foundProduct,HttpStatus.OK);
         }
         catch(Exception e){
             logger.error("Error retrieving product😓.");
-            return new ResponseEntity<>(null,HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new Exception(e.getMessage()),HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @PostMapping("/addProduct")
-    public ResponseEntity<String> addProduct(@RequestBody Product product){
+    public ResponseEntity<Object> addProduct(@RequestBody Product product){
         try{
             logger.info("Incoming Product:"+product);
             pService.setProduct(product);
@@ -51,18 +49,35 @@ public class ProductController {
         }
         catch(Exception e){
             logger.error("Error during product addition", e);
-            return new ResponseEntity<>("Error adding the given product😓", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new Exception(e.getMessage()),HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @PutMapping("/updateProduct")
-    public ResponseEntity<String> updateProduct(@RequestBody Product product){
+    public ResponseEntity<Object> updateProduct(@RequestBody Product product){
         try{
-
+            Product updatedProduct=pService.updateProduct(product);
+            if(updatedProduct==null){
+                return new ResponseEntity<>("No existing product", HttpStatus.NOT_FOUND);
+            }
+            return new ResponseEntity<>("Product details updated.", HttpStatus.OK);
         }
         catch(Exception e){
             logger.error("Error during product update",e);
-            return new ResponseEntity<>("Error updating product😓",HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new Exception(e.getMessage()),HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @DeleteMapping("/deleteProduct/{id}")
+    public ResponseEntity<Object> deleteProduct(@PathVariable("id") Long id){
+        try{
+            int status=pService.deleteProduct(id);
+            if(status==0)return new ResponseEntity<>("No existing product", HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>("Deleted the product.",HttpStatus.OK);
+        }
+        catch(Exception e){
+            logger.error("Error during product update",e);
+            return new ResponseEntity<>(new Exception(e.getMessage()),HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }
