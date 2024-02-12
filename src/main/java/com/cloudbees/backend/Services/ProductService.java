@@ -32,7 +32,7 @@ public class ProductService {
             product.setProductID((long) products.size() + 1);
             products.add(product);
             httpSession.setAttribute("products", products);
-            logger.info("Product added😁");
+            logger.info("Product added");
         }
         catch(Exception e){
             throw e;
@@ -105,7 +105,7 @@ public class ProductService {
         }
     }
 
-    public Product applyTax(DiscountOrTax drt){
+    public Product changePrice(DiscountOrTax drt){
         try{
             List<Product> products = (List<Product>) httpSession.getAttribute("products");
             Long id= drt.getProductID();
@@ -123,6 +123,11 @@ public class ProductService {
                 Double newPrice= oldPrice *((100+drt.getValue())/100);
                 foundProduct.setPrice(newPrice);
             }
+            else if(DRT.DISCOUNT.equals(drt.getDrt())){
+                Double oldPrice= foundProduct.getPrice();
+                Double newPrice= oldPrice *((100-drt.getValue())/100);
+                foundProduct.setPrice(newPrice);
+            }
             else throw new IllegalArgumentException("Allowed values are TAX or DISCOUNT");
             httpSession.setAttribute("products",products);
             return foundProduct;
@@ -138,35 +143,35 @@ public class ProductService {
         }
     }
 
-    public Product applyDiscount(DiscountOrTax drt){
-        try{
-            List<Product> products = (List<Product>) httpSession.getAttribute("products");
-            Long id= drt.getProductID();
-            Product foundProduct = products.stream()
-                    .filter(product -> product.getProductID().equals(id)).findAny()
-                    .orElse(null);
-            if (foundProduct == null) {
-                throw new ProductNotFoundException("Product not found");
-            }
-
-            if(drt.getValue()<0 || drt.getValue()>100)throw new IllegalArgumentException("Value should be in the range of 0 to 100");
-
-            if(DRT.DISCOUNT.equals(drt.getDrt())){
-                Double oldPrice= foundProduct.getPrice();
-                Double newPrice= oldPrice *((100-drt.getValue())/100);
-                foundProduct.setPrice(newPrice);
-            }
-            else throw new IllegalArgumentException("Allowed values are TAX or DISCOUNT");
-            httpSession.setAttribute("products",products);
-            return foundProduct;
-        } catch(IllegalArgumentException e){
-            throw new IllegalArgumentException(e.getMessage());
-        }
-        catch(ProductNotFoundException e){
-            throw new ProductNotFoundException(e.getMessage());
-        }
-        catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+//    public Product applyDiscount(DiscountOrTax drt){
+//        try{
+//            List<Product> products = (List<Product>) httpSession.getAttribute("products");
+//            Long id= drt.getProductID();
+//            Product foundProduct = products.stream()
+//                    .filter(product -> product.getProductID().equals(id)).findAny()
+//                    .orElse(null);
+//            if (foundProduct == null) {
+//                throw new ProductNotFoundException("Product not found");
+//            }
+//
+//            if(drt.getValue()<0 || drt.getValue()>100)throw new IllegalArgumentException("Value should be in the range of 0 to 100");
+//
+//            if(DRT.DISCOUNT.equals(drt.getDrt())){
+//                Double oldPrice= foundProduct.getPrice();
+//                Double newPrice= oldPrice *((100-drt.getValue())/100);
+//                foundProduct.setPrice(newPrice);
+//            }
+//            else throw new IllegalArgumentException("Allowed values are TAX or DISCOUNT");
+//            httpSession.setAttribute("products",products);
+//            return foundProduct;
+//        } catch(IllegalArgumentException e){
+//            throw new IllegalArgumentException(e.getMessage());
+//        }
+//        catch(ProductNotFoundException e){
+//            throw new ProductNotFoundException(e.getMessage());
+//        }
+//        catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 }

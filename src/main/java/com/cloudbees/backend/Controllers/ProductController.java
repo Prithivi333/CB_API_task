@@ -35,16 +35,18 @@ public class ProductController {
         try{
             Product foundProduct=pService.getProduct(id);
             if(foundProduct==null){
-                logger.error("Unable to find requested product😓");
+                logger.error("Unable to find requested product");
                 throw new ProductNotFoundException("No product found");
             }
+            logger.info(foundProduct.toString());
             return new ResponseEntity<>(foundProduct,HttpStatus.OK);
         }
         catch(ProductNotFoundException e){
+            logger.error(e.getMessage());
             return  new ResponseEntity<>(e.getMessage(),HttpStatus.NOT_FOUND);
         }
         catch(Exception e){
-            logger.error("Error retrieving product😓.");
+            logger.error("Error retrieving product.");
             return new ResponseEntity<>(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -54,7 +56,8 @@ public class ProductController {
         try{
 //            logger.info("Incoming Product:"+product);
             pService.setProduct(product);
-            return new ResponseEntity<>("Product added to list successfully!😁", HttpStatus.OK);
+            logger.info("Product added successfully");
+            return new ResponseEntity<>("Product added to list successfully!", HttpStatus.OK);
         }
         catch(Exception e){
             logger.error("Error during product addition", e);
@@ -80,14 +83,14 @@ public class ProductController {
         }
     }
 
-    @PutMapping("/addTax")
-    public ResponseEntity<Object> addTax(@RequestBody DiscountOrTax drt){
+    @PutMapping("/modifyPrice")
+    public ResponseEntity<Object> modifyPrice(@RequestBody DiscountOrTax drt){
         try{
-            Product updatedProduct=pService.applyTax(drt);
+            Product updatedProduct=pService.changePrice(drt);
             if(updatedProduct==null){
                 throw new ProductNotFoundException("Product not found");
             }
-            return new ResponseEntity<>("Product details updated.", HttpStatus.OK);
+            return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
         }
         catch(ProductNotFoundException e){
             return new ResponseEntity<>(e.getMessage(),HttpStatus.NOT_FOUND);
@@ -101,26 +104,26 @@ public class ProductController {
         }
     }
 
-    @PutMapping("/addDiscount")
-    public ResponseEntity<Object> addDiscount(@RequestBody DiscountOrTax drt){
-        try{
-            Product updatedProduct=pService.applyDiscount(drt);
-            if(updatedProduct==null){
-                throw new ProductNotFoundException("Product not found");
-            }
-            return new ResponseEntity<>("Product details updated.", HttpStatus.OK);
-        }
-        catch(ProductNotFoundException e){
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.NOT_FOUND);
-        }
-        catch(IllegalArgumentException e){
-            logger.error("Error during product update",e);
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
-        }
-        catch(Exception e){
-            return new ResponseEntity<>(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+//    @PutMapping("/addDiscount")
+//    public ResponseEntity<Object> addDiscount(@RequestBody DiscountOrTax drt){
+//        try{
+//            Product updatedProduct=pService.applyDiscount(drt);
+//            if(updatedProduct==null){
+//                throw new ProductNotFoundException("Product not found");
+//            }
+//            return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
+//        }
+//        catch(ProductNotFoundException e){
+//            return new ResponseEntity<>(e.getMessage(),HttpStatus.NOT_FOUND);
+//        }
+//        catch(IllegalArgumentException e){
+//            logger.error("Error during product update",e);
+//            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+//        }
+//        catch(Exception e){
+//            return new ResponseEntity<>(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
 
     @DeleteMapping("/deleteProduct/{id}")
     public ResponseEntity<Object> deleteProduct(@PathVariable("id") Long id){
